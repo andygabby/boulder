@@ -374,6 +374,9 @@ func TestHTTPValidationDNSIdMismatchError(t *testing.T) {
 func TestSetupHTTPValidation(t *testing.T) {
 	va, _ := setup(nil, 0, "", nil)
 
+	// Set up a fake time for tests.
+	ft := time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC)
+
 	mustTarget := func(t *testing.T, host string, port int, path string) *httpValidationTarget {
 		target, err := va.newHTTPValidationTarget(
 			context.Background(),
@@ -418,9 +421,10 @@ func TestSetupHTTPValidation(t *testing.T) {
 				path: "idk",
 			},
 			ExpectedRecord: core.ValidationRecord{
-				URL:      "http://ipv4.and.ipv6.localhost/yellow/brick/road",
-				Hostname: "foobar",
-				Port:     strconv.Itoa(va.httpPort),
+				URL:         "http://ipv4.and.ipv6.localhost/yellow/brick/road",
+				Hostname:    "foobar",
+				Port:        strconv.Itoa(va.httpPort),
+				AttemptedAt: &ft,
 			},
 			ExpectedError: fmt.Errorf(`host "foobar" has no IP addresses remaining to use`),
 		},
@@ -434,6 +438,7 @@ func TestSetupHTTPValidation(t *testing.T) {
 				URL:               "http://ipv4.and.ipv6.localhost/yellow/brick/road",
 				AddressesResolved: []net.IP{net.ParseIP("::1"), net.ParseIP("127.0.0.1")},
 				AddressUsed:       net.ParseIP("::1"),
+				AttemptedAt:       &ft,
 			},
 			ExpectedDialer: &preresolvedDialer{
 				ip:      net.ParseIP("::1"),
@@ -451,6 +456,7 @@ func TestSetupHTTPValidation(t *testing.T) {
 				URL:               "https://ipv4.and.ipv6.localhost/yellow/brick/road",
 				AddressesResolved: []net.IP{net.ParseIP("::1"), net.ParseIP("127.0.0.1")},
 				AddressUsed:       net.ParseIP("::1"),
+				AttemptedAt:       &ft,
 			},
 			ExpectedDialer: &preresolvedDialer{
 				ip:      net.ParseIP("::1"),
@@ -719,6 +725,9 @@ func TestFetchHTTP(t *testing.T) {
 	testSrv := httpTestSrv(t)
 	defer testSrv.Close()
 
+	// Set up a fake time for tests.
+	ft := time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC)
+
 	// Setup a VA. By providing the testSrv to setup the VA will use the testSrv's
 	// randomly assigned port as its HTTP port.
 	va, _ := setup(testSrv, 0, "", nil)
@@ -747,6 +756,7 @@ func TestFetchHTTP(t *testing.T) {
 				URL:               url,
 				AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 				AddressUsed:       net.ParseIP("127.0.0.1"),
+				AttemptedAt:       &ft,
 			})
 	}
 
@@ -767,6 +777,7 @@ func TestFetchHTTP(t *testing.T) {
 				URL:               url,
 				AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 				AddressUsed:       net.ParseIP("127.0.0.1"),
+				AttemptedAt:       &ft,
 			})
 	}
 
@@ -807,6 +818,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/timeout",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -841,6 +853,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/redir-bad-proto",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -858,6 +871,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/redir-bad-port",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -875,6 +889,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/redir-bad-host",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -891,6 +906,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/redir-path-too-long",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -908,6 +924,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/bad-status-code",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -926,6 +943,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/resp-too-big",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -942,6 +960,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://ipv6.localhost/ok",
 					AddressesResolved: []net.IP{net.ParseIP("::1")},
 					AddressUsed:       net.ParseIP("::1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -958,6 +977,7 @@ func TestFetchHTTP(t *testing.T) {
 					AddressesResolved: []net.IP{net.ParseIP("::1"), net.ParseIP("127.0.0.1")},
 					// The first validation record should have used the IPv6 addr
 					AddressUsed: net.ParseIP("::1"),
+					AttemptedAt: &ft,
 				},
 				{
 					Hostname:          "ipv4.and.ipv6.localhost",
@@ -966,6 +986,7 @@ func TestFetchHTTP(t *testing.T) {
 					AddressesResolved: []net.IP{net.ParseIP("::1"), net.ParseIP("127.0.0.1")},
 					// The second validation record should have used the IPv4 addr as a fallback
 					AddressUsed: net.ParseIP("127.0.0.1"),
+					AttemptedAt: &ft,
 				},
 			},
 		},
@@ -981,6 +1002,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/ok",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -996,6 +1018,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/redir-uppercase-publicsuffix",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 				{
 					Hostname:          "example.com",
@@ -1003,6 +1026,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/ok",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
@@ -1024,6 +1048,7 @@ func TestFetchHTTP(t *testing.T) {
 					URL:               "http://example.com/printf-verbs",
 					AddressesResolved: []net.IP{net.ParseIP("127.0.0.1")},
 					AddressUsed:       net.ParseIP("127.0.0.1"),
+					AttemptedAt:       &ft,
 				},
 			},
 		},
