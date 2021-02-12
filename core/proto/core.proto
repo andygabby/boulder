@@ -12,7 +12,6 @@ message Challenge {
   string keyAuthorization = 5;
   repeated ValidationRecord validationrecords = 10;
   ProblemDetails error = 7;
-  int64 validated = 11;
 }
 
 message ValidationRecord {
@@ -27,6 +26,7 @@ message ValidationRecord {
   // core/objects.go and the comment on the ValidationRecord structure
   // definition for more information.
   repeated bytes addressesTried = 7; // net.IP.MarshalText()
+  int64 validatedTime = 8; // Unix timestamp (nanoseconds)
 }
 
 message ProblemDetails {

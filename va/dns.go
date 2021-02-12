@@ -52,6 +52,11 @@ func (va *ValidationAuthorityImpl) validateDNS01(ctx context.Context, ident iden
 		return nil, probs.Malformed("Identifier type for DNS was not itself DNS")
 	}
 
+	// validateDNS01 start time. This will be used to timestamp
+	// the validation record but could be used for timing metrics of this
+	// function.
+	vStart := va.clk.Now()
+
 	// Compute the digest of the key authorization file
 	h := sha256.New()
 	h.Write([]byte(challenge.ProvidedKeyAuthorization))
@@ -74,7 +79,7 @@ func (va *ValidationAuthorityImpl) validateDNS01(ctx context.Context, ident iden
 	for _, element := range txts {
 		if subtle.ConstantTimeCompare([]byte(element), []byte(authorizedKeysDigest)) == 1 {
 			// Successful challenge validation
-			return []core.ValidationRecord{{Hostname: ident.Value}}, nil
+			return []core.ValidationRecord{{Hostname: ident.Value, ValidatedTime: &vStart}}, nil
 		}
 	}
 

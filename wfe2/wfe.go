@@ -1100,6 +1100,14 @@ func (wfe *WebFrontEndImpl) prepChallengeForDisplay(request *http.Request, authz
 	if authz.Status == core.StatusInvalid {
 		challenge.Status = authz.Status
 	}
+
+	// Surface the validationTime stored in the validationRecord as
+	// challenge.Validated to the client as required by RFC8555
+	for _, valRecord := range challenge.ValidationRecord {
+		if valRecord.ValidatedTime != nil {
+			challenge.Validated = valRecord.ValidatedTime.Format(time.RFC3339)
+		}
+	}
 }
 
 // prepAuthorizationForDisplay takes a core.Authorization and prepares it for

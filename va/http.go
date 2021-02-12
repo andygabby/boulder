@@ -430,6 +430,11 @@ func (va *ValidationAuthorityImpl) processHTTPValidation(
 	host string,
 	path string) ([]byte, []core.ValidationRecord, error) {
 
+	// ProcessHTTPValidation start time. This will be used to timestamp
+	// the validation record but could be used for timing metrics of this
+	// function.
+	vStart := va.clk.Now()
+
 	// Create a target for the host, port and path with no query parameters
 	target, err := va.newHTTPValidationTarget(ctx, host, va.httpPort, path, "")
 	if err != nil {
@@ -483,6 +488,9 @@ func (va *ValidationAuthorityImpl) processHTTPValidation(
 	if err != nil {
 		return nil, []core.ValidationRecord{}, err
 	}
+
+	// Timestamp when the baseRecord validation was attempted.
+	baseRecord.ValidatedTime = &vStart
 
 	// Build a transport for this validation that will use the preresolvedDialer's
 	// DialContext function
