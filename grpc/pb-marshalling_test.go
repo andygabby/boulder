@@ -52,13 +52,11 @@ func TestChallenge(t *testing.T) {
 	var jwk jose.JSONWebKey
 	err := json.Unmarshal([]byte(JWK1JSON), &jwk)
 	test.AssertNotError(t, err, "Failed to unmarshal test key")
-	validated := time.Now().Round(0).UTC()
 	chall := core.Challenge{
 		Type:                     core.ChallengeTypeDNS01,
 		Status:                   core.StatusValid,
 		Token:                    "asd",
 		ProvidedKeyAuthorization: "keyauth",
-		Validated:                &validated,
 	}
 
 	pb, err := ChallengeToPB(chall)
@@ -98,6 +96,8 @@ func TestChallenge(t *testing.T) {
 }
 
 func TestValidationRecord(t *testing.T) {
+	// Set up a fake time for tests.
+	ft := time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC)
 	ip := net.ParseIP("1.1.1.1")
 	vr := core.ValidationRecord{
 		Hostname:          "host",
@@ -106,6 +106,7 @@ func TestValidationRecord(t *testing.T) {
 		AddressUsed:       ip,
 		URL:               "url",
 		AddressesTried:    []net.IP{ip},
+		AttemptedAt:       &ft,
 	}
 
 	pb, err := ValidationRecordToPB(vr)
@@ -118,6 +119,7 @@ func TestValidationRecord(t *testing.T) {
 }
 
 func TestValidationResult(t *testing.T) {
+	ft := time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC)
 	ip := net.ParseIP("1.1.1.1")
 	vrA := core.ValidationRecord{
 		Hostname:          "hostA",
@@ -126,6 +128,7 @@ func TestValidationResult(t *testing.T) {
 		AddressUsed:       ip,
 		URL:               "urlA",
 		AddressesTried:    []net.IP{ip},
+		AttemptedAt:       &ft,
 	}
 	vrB := core.ValidationRecord{
 		Hostname:          "hostB",
@@ -134,6 +137,7 @@ func TestValidationResult(t *testing.T) {
 		AddressUsed:       ip,
 		URL:               "urlB",
 		AddressesTried:    []net.IP{ip},
+		AttemptedAt:       &ft,
 	}
 	result := []core.ValidationRecord{vrA, vrB}
 	prob := &probs.ProblemDetails{Type: probs.TLSProblem, Detail: "asd", HTTPStatus: 200}

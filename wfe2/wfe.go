@@ -1101,12 +1101,22 @@ func (wfe *WebFrontEndImpl) prepChallengeForDisplay(request *http.Request, authz
 		challenge.Status = authz.Status
 	}
 
-	// Surface the validationTime stored in the validationRecord as
-	// challenge.Validated to the client as required by RFC8555
+	// Get the validation time from the validationRecord for use in
+	// displaying it as part of the challenge to the client. Stop at the
+	// first validation record that has a timestamp.
+	var vrAttemptedAt string
 	for _, valRecord := range challenge.ValidationRecord {
-		if valRecord.ValidatedTime != nil {
-			challenge.Validated = valRecord.ValidatedTime.Format(time.RFC3339)
+		if valRecord.AttemptedAt != nil {
+			vrAttemptedAt = valRecord.AttemptedAt.Format(time.RFC3339)
+			break
 		}
+	}
+
+	// If the status of the challenge is valid, surface the validationTime
+	// stored in the validationRecord as challenge.Validated to the client
+	// as required by RFC8555.
+	if challenge.Status == core.StatusValid {
+		challenge.Validated = vrAttemptedAt
 	}
 }
 

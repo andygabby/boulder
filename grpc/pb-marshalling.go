@@ -129,9 +129,9 @@ func ValidationRecordToPB(record core.ValidationRecord) (*corepb.ValidationRecor
 	// If a time is nil it will default to the the unix epoch 0 time when
 	// converted. We don't want this and would rather only convert it to
 	// unix if it has a value.
-	var validatedTime int64
-	if record.ValidatedTime != nil {
-		validatedTime = record.ValidatedTime.UTC().UnixNano()
+	var attemptedAt int64
+	if record.AttemptedAt != nil {
+		attemptedAt = record.AttemptedAt.UTC().UnixNano()
 	}
 	return &corepb.ValidationRecord{
 		Hostname:          record.Hostname,
@@ -140,7 +140,7 @@ func ValidationRecordToPB(record core.ValidationRecord) (*corepb.ValidationRecor
 		AddressUsed:       addrUsed,
 		Url:               record.URL,
 		AddressesTried:    addrsTried,
-		ValidatedTime:     validatedTime,
+		AttemptedAt:       attemptedAt,
 	}, nil
 }
 
@@ -164,10 +164,10 @@ func PBToValidationRecord(in *corepb.ValidationRecord) (record core.ValidationRe
 	// If the unix epoch is not zero then we can convert it to a Time, if
 	// it is zero that means it is the unix epoch start time and we don't
 	// want to use it.
-	var validatedTime *time.Time
-	if in.ValidatedTime != 0 {
-		val := time.Unix(0, in.ValidatedTime).UTC()
-		validatedTime = &val
+	var attemptedAt *time.Time
+	if in.AttemptedAt != 0 {
+		val := time.Unix(0, in.AttemptedAt).UTC()
+		attemptedAt = &val
 	}
 	return core.ValidationRecord{
 		Hostname:          in.Hostname,
@@ -176,7 +176,7 @@ func PBToValidationRecord(in *corepb.ValidationRecord) (record core.ValidationRe
 		AddressUsed:       addrUsed,
 		URL:               in.Url,
 		AddressesTried:    addrsTried,
-		ValidatedTime:     validatedTime,
+		AttemptedAt:       attemptedAt,
 	}, nil
 }
 

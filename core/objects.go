@@ -169,7 +169,7 @@ type ValidationRecord struct {
 	// }
 	AddressesTried []net.IP `json:"addressesTried,omitempty"`
 	// The time at which the server attempted validation.
-	ValidatedTime *time.Time `json:"validated,omitempty"`
+	AttemptedAt *time.Time `json:"attemptedAt,omitempty"`
 }
 
 func looksLikeKeyAuthorization(str string) error {

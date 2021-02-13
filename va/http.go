@@ -362,6 +362,9 @@ func (va *ValidationAuthorityImpl) setupHTTPValidation(
 			fmt.Errorf("httpValidationTarget can not be nil")
 	}
 
+	// Timestamp for the validation record
+	attemptTime := va.clk.Now()
+
 	// Construct a base validation record with the validation target's
 	// information.
 	record := core.ValidationRecord{
@@ -369,6 +372,7 @@ func (va *ValidationAuthorityImpl) setupHTTPValidation(
 		Port:              strconv.Itoa(target.port),
 		AddressesResolved: target.available,
 		URL:               reqURL,
+		AttemptedAt:       &attemptTime,
 	}
 
 	// Get the target IP to build a preresolved dialer with
@@ -430,11 +434,6 @@ func (va *ValidationAuthorityImpl) processHTTPValidation(
 	host string,
 	path string) ([]byte, []core.ValidationRecord, error) {
 
-	// ProcessHTTPValidation start time. This will be used to timestamp
-	// the validation record but could be used for timing metrics of this
-	// function.
-	vStart := va.clk.Now()
-
 	// Create a target for the host, port and path with no query parameters
 	target, err := va.newHTTPValidationTarget(ctx, host, va.httpPort, path, "")
 	if err != nil {
@@ -488,9 +487,6 @@ func (va *ValidationAuthorityImpl) processHTTPValidation(
 	if err != nil {
 		return nil, []core.ValidationRecord{}, err
 	}
-
-	// Timestamp when the baseRecord validation was attempted.
-	baseRecord.ValidatedTime = &vStart
 
 	// Build a transport for this validation that will use the preresolvedDialer's
 	// DialContext function

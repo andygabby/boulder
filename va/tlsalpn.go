@@ -69,7 +69,7 @@ func (va *ValidationAuthorityImpl) tryGetTLSCerts(ctx context.Context,
 			Hostname:          identifier.Value,
 			AddressesResolved: allAddrs,
 			Port:              strconv.Itoa(va.tlsPort),
-			ValidatedTime:     &vStart,
+			AttemptedAt:       &vStart,
 		},
 	}
 	if err != nil {
