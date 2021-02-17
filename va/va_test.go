@@ -116,7 +116,7 @@ func setChallengeToken(ch *core.Challenge, token string) {
 func setup(srv *httptest.Server, maxRemoteFailures int, userAgent string, remoteVAs []RemoteVA) (*ValidationAuthorityImpl, *blog.Mock) {
 	features.Reset()
 	fc := clock.NewFake()
-	fc.Set(time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC))
+
 	logger := blog.NewMock()
 
 	if userAgent == "" {
@@ -282,10 +282,10 @@ func TestPerformValidationValid(t *testing.T) {
 		t.Error("PerformValidation didn't log validation hostname.")
 	}
 
-	// Check log to see if the expected attemptedAt string appears. This
+	// Check log to see if the expected validated string appears. This
 	// should match what is configured in func setup() for the fake clock.
-	if !strings.Contains(resultLog[0], `"attemptedAt":"2021-01-01T01:00:00Z"`) {
-		t.Error("PerformValidation didn't log correct attemptedAt timestamp.")
+	if !strings.Contains(resultLog[0], `"validated":"1970-01-01T00:00:00Z"`) {
+		t.Error("Validated timestamp string not found in log.")
 	}
 }
 
@@ -323,10 +323,10 @@ func TestPerformValidationWildcard(t *testing.T) {
 		t.Errorf("PerformValidation didn't log correct validation record hostname.")
 	}
 
-	// Check log to see if the expected attemptedAt string appears. This
+	// Check log to see if the expected validated string appears. This
 	// should match what is configured in func setup() for the fake clock.
-	if !strings.Contains(resultLog[0], `"attemptedAt":"2021-01-01T01:00:00Z"`) {
-		t.Error("PerformValidation didn't log correct attemptedAt timestamp.")
+	if !strings.Contains(resultLog[0], `"validated":"1970-01-01T00:00:00Z"`) {
+		t.Error("Validated timestamp string not found in log.")
 	}
 }
 
