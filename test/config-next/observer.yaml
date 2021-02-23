@@ -1,0 +1,23 @@
+--- 
+debugAddr: 8040
+syslog: 
+  stdoutlevel: 6
+  sysloglevel: 6
+timeout: 10
+monitors: 
+  - 
+    enabled: true
+    period: 5
+    handler: dns
+    DNS:
+      qproto: udp
+      qname: letsencrypt.org
+      qtype: A
+      qserver: "8.8.8.8:53"
+  # - 
+  #   enabled: true
+  #   period: 5
+  #   handler: http
+  #   HTTP: 
+  #     uri: letsencrypt.org
+  #     tls: false
