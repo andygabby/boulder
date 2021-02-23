@@ -58,12 +58,18 @@ func (va *ValidationAuthorityImpl) tryGetTLSCerts(ctx context.Context,
 	identifier identifier.ACMEIdentifier, challenge core.Challenge,
 	tlsConfig *tls.Config) ([]*x509.Certificate, *tls.ConnectionState, []core.ValidationRecord, *probs.ProblemDetails) {
 
+	// tryGetTLSCerts start time. This will be used to timestamp
+	// the validation record but could be used for timing metrics of this
+	// function.
+	vStart := va.clk.Now()
+
 	allAddrs, err := va.getAddrs(ctx, identifier.Value)
 	validationRecords := []core.ValidationRecord{
 		{
 			Hostname:          identifier.Value,
 			AddressesResolved: allAddrs,
 			Port:              strconv.Itoa(va.tlsPort),
+			AttemptedAt:       &vStart,
 		},
 	}
 	if err != nil {

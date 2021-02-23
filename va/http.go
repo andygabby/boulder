@@ -362,6 +362,9 @@ func (va *ValidationAuthorityImpl) setupHTTPValidation(
 			fmt.Errorf("httpValidationTarget can not be nil")
 	}
 
+	// Timestamp for the validation record
+	attemptTime := va.clk.Now()
+
 	// Construct a base validation record with the validation target's
 	// information.
 	record := core.ValidationRecord{
@@ -369,6 +372,7 @@ func (va *ValidationAuthorityImpl) setupHTTPValidation(
 		Port:              strconv.Itoa(target.port),
 		AddressesResolved: target.available,
 		URL:               reqURL,
+		AttemptedAt:       &attemptTime,
 	}
 
 	// Get the target IP to build a preresolved dialer with

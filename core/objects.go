@@ -168,6 +168,8 @@ type ValidationRecord struct {
 	//   ...
 	// }
 	AddressesTried []net.IP `json:"addressesTried,omitempty"`
+	// The time at which the server attempted validation.
+	AttemptedAt *time.Time `json:"attemptedAt,omitempty"`
 }
 
 func looksLikeKeyAuthorization(str string) error {
@@ -220,8 +222,10 @@ type Challenge struct {
 	// used
 	ValidationRecord []ValidationRecord `json:"validationRecord,omitempty"`
 	// The time at which the server validated the challenge. Required by
-	// RFC8555 if status is valid.
-	Validated *time.Time `json:"validated,omitempty"`
+	// RFC8555 if status is valid. This is only used for display to the
+	// client so is set to a string to control display format. Per RFC8555
+	// the display format should be RFC3339.
+	Validated string `json:"validated,omitempty"`
 }
 
 // ExpectedKeyAuthorization computes the expected KeyAuthorization value for
