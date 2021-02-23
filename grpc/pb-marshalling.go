@@ -68,6 +68,10 @@ func ChallengeToPB(challenge core.Challenge) (*corepb.Challenge, error) {
 			return nil, err
 		}
 	}
+	var validated int64
+	if challenge.Validated != nil {
+		validated = challenge.Validated.UTC().UnixNano()
+	}
 	return &corepb.Challenge{
 		Type:              string(challenge.Type),
 		Status:            string(challenge.Status),
@@ -75,6 +79,7 @@ func ChallengeToPB(challenge core.Challenge) (*corepb.Challenge, error) {
 		KeyAuthorization:  challenge.ProvidedKeyAuthorization,
 		Error:             prob,
 		Validationrecords: recordAry,
+		Validated:         validated,
 	}, nil
 }
 
@@ -99,12 +104,18 @@ func PBToChallenge(in *corepb.Challenge) (challenge core.Challenge, err error) {
 	if err != nil {
 		return core.Challenge{}, err
 	}
+	var validated *time.Time
+	if in.Validated != 0 {
+		val := time.Unix(0, in.Validated).UTC()
+		validated = &val
+	}
 	ch := core.Challenge{
 		Type:             core.AcmeChallenge(in.Type),
 		Status:           core.AcmeStatus(in.Status),
 		Token:            in.Token,
 		Error:            prob,
 		ValidationRecord: recordAry,
+		Validated:        validated,
 	}
 	if in.KeyAuthorization != "" {
 		ch.ProvidedKeyAuthorization = in.KeyAuthorization
@@ -126,13 +137,6 @@ func ValidationRecordToPB(record core.ValidationRecord) (*corepb.ValidationRecor
 	if err != nil {
 		return nil, err
 	}
-	// If a time is nil it will default to the the unix epoch 0 time when
-	// converted. We don't want this and would rather only convert it to
-	// unix if it has a value.
-	var attemptedAt int64
-	if record.AttemptedAt != nil {
-		attemptedAt = record.AttemptedAt.UTC().UnixNano()
-	}
 	return &corepb.ValidationRecord{
 		Hostname:          record.Hostname,
 		Port:              record.Port,
@@ -140,7 +144,6 @@ func ValidationRecordToPB(record core.ValidationRecord) (*corepb.ValidationRecor
 		AddressUsed:       addrUsed,
 		Url:               record.URL,
 		AddressesTried:    addrsTried,
-		AttemptedAt:       attemptedAt,
 	}, nil
 }
 
@@ -161,14 +164,6 @@ func PBToValidationRecord(in *corepb.ValidationRecord) (record core.ValidationRe
 	if err != nil {
 		return
 	}
-	// If the unix epoch is not zero then we can convert it to a Time, if
-	// it is zero that means it is the unix epoch start time and we don't
-	// want to use it.
-	var attemptedAt *time.Time
-	if in.AttemptedAt != 0 {
-		val := time.Unix(0, in.AttemptedAt).UTC()
-		attemptedAt = &val
-	}
 	return core.ValidationRecord{
 		Hostname:          in.Hostname,
 		Port:              in.Port,
@@ -176,7 +171,6 @@ func PBToValidationRecord(in *corepb.ValidationRecord) (record core.ValidationRe
 		AddressUsed:       addrUsed,
 		URL:               in.Url,
 		AddressesTried:    addrsTried,
-		AttemptedAt:       attemptedAt,
 	}, nil
 }
 

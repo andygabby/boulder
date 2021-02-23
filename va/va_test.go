@@ -116,7 +116,7 @@ func setChallengeToken(ch *core.Challenge, token string) {
 func setup(srv *httptest.Server, maxRemoteFailures int, userAgent string, remoteVAs []RemoteVA) (*ValidationAuthorityImpl, *blog.Mock) {
 	features.Reset()
 	fc := clock.NewFake()
-	fc.Set(time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC))
+
 	logger := blog.NewMock()
 
 	if userAgent == "" {
@@ -281,12 +281,6 @@ func TestPerformValidationValid(t *testing.T) {
 	if !strings.Contains(resultLog[0], `"Hostname":"good-dns01.com"`) {
 		t.Error("PerformValidation didn't log validation hostname.")
 	}
-
-	// Check log to see if the expected attemptedAt string appears. This
-	// should match what is configured in func setup() for the fake clock.
-	if !strings.Contains(resultLog[0], `"attemptedAt":"2021-01-01T01:00:00Z"`) {
-		t.Error("PerformValidation didn't log correct attemptedAt timestamp.")
-	}
 }
 
 // TestPerformValidationWildcard tests that the VA properly strips the `*.`
@@ -321,12 +315,6 @@ func TestPerformValidationWildcard(t *testing.T) {
 	// hostname that was validated
 	if !strings.Contains(resultLog[0], `"hostname":"good-dns01.com"`) {
 		t.Errorf("PerformValidation didn't log correct validation record hostname.")
-	}
-
-	// Check log to see if the expected attemptedAt string appears. This
-	// should match what is configured in func setup() for the fake clock.
-	if !strings.Contains(resultLog[0], `"attemptedAt":"2021-01-01T01:00:00Z"`) {
-		t.Error("PerformValidation didn't log correct attemptedAt timestamp.")
 	}
 }
 
