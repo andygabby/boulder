@@ -86,18 +86,19 @@ func createPendingAuthorization(t *testing.T, sa core.StorageAuthority, domain s
 	return ids.Ids[0]
 }
 
-func createFinalizedAuthorization(t *testing.T, sa core.StorageAuthority, domain string, exp time.Time, status string, atmpdAt time.Time) int64 {
+func createFinalizedAuthorization(t *testing.T, sa core.StorageAuthority, domain string, exp time.Time,
+	status string, attemptedAt time.Time) int64 {
 	t.Helper()
 	pendingID := createPendingAuthorization(t, sa, domain, exp)
 	expInt := exp.UnixNano()
 	attempted := string(core.ChallengeTypeHTTP01)
-	attemptedAt := atmpdAt.UnixNano()
+	attemptedAtInt := attemptedAt.UnixNano()
 	err := sa.FinalizeAuthorization2(context.Background(), &sapb.FinalizeAuthorizationRequest{
 		Id:          pendingID,
 		Status:      status,
 		Expires:     expInt,
 		Attempted:   attempted,
-		AttemptedAt: attemptedAt,
+		AttemptedAt: attemptedAtInt,
 	})
 	test.AssertNotError(t, err, "sa.FinalizeAuthorizations2 failed")
 	return pendingID
