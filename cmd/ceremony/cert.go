@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto"
-	"crypto/rand"
 	"crypto/sha1"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -321,31 +320,23 @@ func (fr *failReader) Read([]byte) (int, error) {
 }
 
 func generateCSR(profile *certProfile, randReader *hsmRandReader, pubBytes []byte, pub crypto.PublicKey, signer crypto.Signer) ([]byte, error) {
-	// currently Go doesn't support all of the convenience fields for x509.CertificateRequest
-	// that x509.Certificate has. Instead of doing all of the manual extension construction
-	// ourselves here we just create a throwaway self-signed certificate and then dump all
-	// of the generated extensions into a x509.CertificateRequest. In the future Go should
-	// support doing this properly itself, but for now this is the easiest approach.
+	// Go doesn't appear likely to adopt any convenience fields in
+	// x509.CertificateRequest that x509.Certificate has and in go 1.16 .
+	// We do not intend to use CSRs in signing ceremonies, but have this
+	// function in case a CSR is necessary for a cross signature from a CA
+	// that requires a CSR. In that case, the signing party will need to
+	// sign with appropriate extensions, but we will provide a CSR with
+	// enough information for the signing party to generate an appropriate
+	// certificate.
 	template, err := makeTemplate(randReader, profile, pubBytes, requestCert)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate template: %s", err)
 	}
-	selfSignedDER, err := x509.CreateCertificate(rand.Reader, template, template, pub, &csrSelfSigner{pub})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create certificate for CSR: %s", err)
-	}
-	selfSigned, err := x509.ParseCertificate(selfSignedDER)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse certificate template for CSR: %s", err)
-	}
-
 	csrDER, err := x509.CreateCertificateRequest(&failReader{}, &x509.CertificateRequest{
-		Subject:         selfSigned.Subject,
-		ExtraExtensions: selfSigned.Extensions,
+		Subject: template.Subject,
 	}, signer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create and sign CSR: %s", err)
 	}
-
 	return csrDER, nil
 }

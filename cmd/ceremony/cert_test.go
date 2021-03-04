@@ -5,10 +5,10 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/letsencrypt/boulder/pkcs11helpers"
@@ -478,21 +478,8 @@ func TestGenerateCSR(t *testing.T) {
 	csr, err := x509.ParseCertificateRequest(csrBytes)
 	test.AssertNotError(t, err, "failed to parse CSR")
 	test.AssertNotError(t, csr.CheckSignature(), "CSR signature check failed")
-	test.AssertEquals(t, len(csr.Extensions), 7)
+	test.AssertEquals(t, len(csr.Extensions), 0)
 
-	containsExt := func(oid asn1.ObjectIdentifier, extensions []pkix.Extension) bool {
-		for _, ext := range extensions {
-			if ext.Id.Equal(oid) {
-				return true
-			}
-		}
-		return false
-	}
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{2, 5, 29, 15}, csr.Extensions), "CSR doesn't contain keyUsage extension")
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{2, 5, 29, 37}, csr.Extensions), "CSR doesn't contain extKeyUsage extension")
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{2, 5, 29, 19}, csr.Extensions), "CSR doesn't contain basicConstraints extension")
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{2, 5, 29, 14}, csr.Extensions), "CSR doesn't contain subjectKeyIdentifier extension")
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 1}, csr.Extensions), "CSR doesn't contain authorityInfoAccess extension")
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{2, 5, 29, 31}, csr.Extensions), "CSR doesn't contain cRLDistributionPoints extension")
-	test.Assert(t, containsExt(asn1.ObjectIdentifier{2, 5, 29, 32}, csr.Extensions), "CSR doesn't contain certificatePolicies extension")
+	test.AssertEquals(t, csr.Subject.String(), fmt.Sprintf("CN=%s,O=%s,C=%s",
+		profile.CommonName, profile.Organization, profile.Country))
 }
